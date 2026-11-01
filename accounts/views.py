@@ -1,16 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth import login
-from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from .forms import RegistrationForm
 
-
 def home(request):
-    # Temporary placeholder until the real homepage is built
-    return HttpResponse("BloomBuds home (placeholder)")
-
+    return render(request, 'accounts/home.html')
 
 def register(request):
     if request.user.is_authenticated:
