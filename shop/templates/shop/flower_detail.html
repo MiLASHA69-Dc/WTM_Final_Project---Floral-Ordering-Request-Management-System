@@ -13,4 +13,13 @@
     <p>
         {% if flower.is_available %}Available{% else %}Currently unavailable{% endif %}
     </p>
+
+    {% if flower.is_available %}
+    <form method="post" action="{% url 'cart_add' flower.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <input type="number" name="quantity" value="1" min="1" max="99">
+        <button type="submit">Add to cart</button>
+    </form>
+    {% endif %}
 {% endblock %}

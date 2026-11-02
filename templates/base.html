@@ -9,6 +9,7 @@
     <nav>
         <a href="{% url 'home' %}">BloomBuds</a>
         | <a href="{% url 'catalog' %}">Catalog</a>
+        | <a href="{% url 'cart' %}">Cart</a>
         {% if user.is_authenticated %}
             {% if user.is_staff %}
                 | <a href="/admin/">Staff admin</a>
