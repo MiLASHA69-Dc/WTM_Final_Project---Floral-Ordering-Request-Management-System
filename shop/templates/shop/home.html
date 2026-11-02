@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}BloomBuds | A Blossom for Every Moment{% endblock %}
+{% block content %}
+    <h1>BloomBuds</h1>
+    <p>A Blossom for Every Moment...</p>
+    <p><a href="{% url 'catalog' %}">Browse the catalog</a></p>
+
+    <h2>Featured flowers</h2>
+    {% for flower in featured %}
+        <div>
+            {% if flower.image %}
+                <img src="{{ flower.image.url }}" alt="{{ flower.name }}" width="150">
+            {% endif %}
+            <h3><a href="{% url 'flower_detail' flower.pk %}">{{ flower.name }}</a></h3>
+            <p>{{ flower.category.name }} | Price: {{ flower.unit_price }}</p>
+        </div>
+    {% empty %}
+        <p>No flowers to show yet.</p>
+    {% endfor %}
+
+    <h2>Shop information</h2>
+    <p>Customer pickup only. Shop hours: 8:00 AM to 4:30 PM.</p>
+    <p>Quick orders must be submitted before 11:00 AM for same-day pickup. Payment is made at the counter.</p>
+{% endblock %}

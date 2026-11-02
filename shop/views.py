@@ -29,3 +29,11 @@ def catalog_list(request):
 def flower_detail(request, pk):
     flower = get_object_or_404(Flower, pk=pk, is_active=True)
     return render(request, 'shop/flower_detail.html', {'flower': flower})
+
+def home(request):
+    featured = (
+        Flower.objects.filter(is_active=True, is_available=True)
+        .select_related('category')
+        .order_by('-id')[:4]
+    )
+    return render(request, 'shop/home.html', {'featured': featured})
