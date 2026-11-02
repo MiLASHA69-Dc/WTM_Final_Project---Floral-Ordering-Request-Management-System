@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}{{ flower.name }} | BloomBuds{% endblock %}
+{% block content %}
+    <p><a href="{% url 'catalog' %}">Back to catalog</a></p>
+    <h1>{{ flower.name }}</h1>
+    {% if flower.image %}
+        <img src="{{ flower.image.url }}" alt="{{ flower.name }}" width="300">
+    {% endif %}
+    <p>Category: {{ flower.category.name }}</p>
+    <p>Colour: {{ flower.color }}</p>
+    <p>{{ flower.description }}</p>
+    <p>Price: {{ flower.unit_price }}</p>
+    <p>
+        {% if flower.is_available %}Available{% else %}Currently unavailable{% endif %}
+    </p>
+{% endblock %}

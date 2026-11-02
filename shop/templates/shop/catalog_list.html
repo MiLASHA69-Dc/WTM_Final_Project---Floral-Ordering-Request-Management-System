@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Catalog | BloomBuds{% endblock %}
+{% block content %}
+    <h1>Flower Catalog</h1>
+
+    <form method="get">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search flowers">
+        <select name="category">
+            <option value="">All categories</option>
+            {% for category in categories %}
+                <option value="{{ category.id }}"
+                    {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Search</button>
+        <a href="{% url 'catalog' %}">Clear</a>
+    </form>
+
+    {% for flower in flowers %}
+        <div>
+            {% if flower.image %}
+                <img src="{{ flower.image.url }}" alt="{{ flower.name }}" width="150">
+            {% endif %}
+            <h3><a href="{% url 'flower_detail' flower.pk %}">{{ flower.name }}</a></h3>
+            <p>{{ flower.category.name }} | {{ flower.color }}</p>
+            <p>Price: {{ flower.unit_price }}</p>
+            <p>
+                {% if flower.is_available %}Available{% else %}Currently unavailable{% endif %}
+            </p>
+        </div>
+    {% empty %}
+        <p>No flowers found.</p>
+    {% endfor %}
+{% endblock %}
