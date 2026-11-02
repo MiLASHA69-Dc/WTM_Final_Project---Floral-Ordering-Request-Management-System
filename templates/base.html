@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}BloomBuds{% endblock %}</title>
+</head>
+<body>
+    <nav>
+        <a href="{% url 'home' %}">BloomBuds</a>
+        | <a href="{% url 'catalog' %}">Catalog</a>
+        | <a href="{% url 'cart' %}">Cart</a>
+        {% if user.is_authenticated %}
+            {% if user.is_staff %}
+                | <a href="/admin/">Staff admin</a>
+            {% endif %}
+            | <span>{{ user.username }}</span>
+            <form method="post" action="{% url 'logout' %}" style="display:inline">
+                {% csrf_token %}
+                <button type="submit">Log out</button>
+            </form>
+        {% else %}
+            | <a href="{% url 'login' %}">Log in</a>
+            | <a href="{% url 'register' %}">Register</a>
+        {% endif %}
+    </nav>
+
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</body>
+</html>
