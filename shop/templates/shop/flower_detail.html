@@ -1,25 +1,29 @@
 {% extends 'base.html' %}
 {% block title %}{{ flower.name }} | BloomBuds{% endblock %}
 {% block content %}
-    <p><a href="{% url 'catalog' %}">Back to catalog</a></p>
-    <h1>{{ flower.name }}</h1>
-    {% if flower.image %}
-        <img src="{{ flower.image.url }}" alt="{{ flower.name }}" width="300">
-    {% endif %}
-    <p>Category: {{ flower.category.name }}</p>
-    <p>Colour: {{ flower.color }}</p>
-    <p>{{ flower.description }}</p>
-    <p>Price: {{ flower.unit_price }}</p>
-    <p>
-        {% if flower.is_available %}Available{% else %}Currently unavailable{% endif %}
-    </p>
-
-    {% if flower.is_available %}
-    <form method="post" action="{% url 'cart_add' flower.pk %}">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <input type="number" name="quantity" value="1" min="1" max="99">
-        <button type="submit">Add to cart</button>
-    </form>
-    {% endif %}
+    <p><a href="{% url 'catalog' %}">&larr; Back to catalog</a></p>
+    <div class="detail">
+        {% if flower.image %}
+            <img class="flower-image" src="{{ flower.image.url }}" alt="{{ flower.name }}">
+        {% else %}
+            <div class="flower-image placeholder">No image</div>
+        {% endif %}
+        <div>
+            <h1>{{ flower.name }}</h1>
+            <p class="flower-meta">{{ flower.category.name }} | {{ flower.color }}</p>
+            <p>{{ flower.description }}</p>
+            <p class="flower-price">Price: {{ flower.unit_price }}</p>
+            {% if flower.is_available %}
+                <span class="badge badge-ok">Available</span>
+                <form class="add-form" method="post" action="{% url 'cart_add' flower.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <input type="number" name="quantity" value="1" min="1" max="99">
+                    <button type="submit">Add to cart</button>
+                </form>
+            {% else %}
+                <span class="badge badge-no">Currently unavailable</span>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}
