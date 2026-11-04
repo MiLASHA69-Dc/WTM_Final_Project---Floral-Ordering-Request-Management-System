@@ -26,7 +26,7 @@ class OrderRequest(models.Model):
         UNPAID = "unpaid", "Unpaid"
         PAID = "paid", "Paid"
 
-    # User (1) -> OrderRequest (Many)
+    # User->OrderRequest (1:M)
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -89,14 +89,14 @@ class OrderRequest(models.Model):
 
 class OrderItem(models.Model):
 
-    # OrderRequest (1) -> OrderItem (Many)
+    # OrderRequest->OrderItem (1:M)
     order_request = models.ForeignKey(
         OrderRequest,
         on_delete=models.CASCADE,
         related_name="items"
     )
 
-    # Flower (1) -> OrderItem (Many)
+    # Flower->OrderItem (1:M)
     flower = models.ForeignKey(
         "catalog.Flower",
         on_delete=models.PROTECT,
