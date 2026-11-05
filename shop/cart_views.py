@@ -100,7 +100,7 @@ def cart_proceed(request):
         return redirect_to_login(request.get_full_path())
 
     try:
-        return redirect(reverse('orders:select_type'))
+        return redirect(reverse('orders:select_order_type'))
     except NoReverseMatch:
         messages.info(request, 'Order submission is not available yet.')
         return redirect('cart')
