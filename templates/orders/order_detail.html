@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Order #{{ order.id }} Details | BloomBuds{% endblock %}
+
+{% block content %}
+<div class="order-detail-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="margin: 0; color: var(--rose);">Order #{{ order.id }}</h1>
+            <p style="color: var(--muted); margin: 0.25rem 0 0;">Placed on {{ order.created_at|date:"F d, Y \a\t H:i" }}</p>
+        </div>
+        <a href="{% url 'orders:my_orders' %}" class="btn">&laquo; Back to My Orders</a>
+    </div>
+
+    {% if order.status == 'changes_required' and order.revision_reason %}
+        <div class="message" style="background: #fff3cd; border-color: #ffeeba; color: #856404; margin-bottom: 1.5rem;">
+            <strong>Florist requested revision:</strong>
+            <p style="margin: 0.5rem 0 0;">{{ order.revision_reason }}</p>
+        </div>
+    {% endif %}
+
+    {% if order.status == 'rejected' and order.rejection_reason %}
+        <div class="message error" style="margin-bottom: 1.5rem;">
+            <strong>Order Rejected:</strong>
+            <p style="margin: 0.5rem 0 0;">{{ order.rejection_reason }}</p>
+        </div>
+    {% endif %}
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Order Info Card -->
+        <div class="info-box" style="margin-top: 0;">
+            <h3 style="margin-top: 0; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;">Pickup &amp; Contact</h3>
+            <p><strong>Order Type:</strong> {{ order.get_order_type_display }}</p>
+            <p><strong>Pickup Date:</strong> {{ order.pickup_date|date:"l, F d, Y" }}</p>
+            <p><strong>Pickup Time:</strong> {{ order.pickup_time|time:"H:i" }}</p>
+            <p><strong>Contact Phone:</strong> {{ order.contact_phone }}</p>
+            {% if order.occasion %}
+                <p><strong>Occasion:</strong> {{ order.occasion }}</p>
+            {% endif %}
+            {% if order.instructions %}
+                <p><strong>Special Instructions:</strong><br><span style="color: var(--muted);">{{ order.instructions }}</span></p>
+            {% endif %}
+        </div>
+
+        <!-- Status & Payment Card -->
+        <div class="info-box" style="margin-top: 0;">
+            <h3 style="margin-top: 0; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;">Order Status</h3>
+            <p>
+                <strong>Current Status:</strong>
+                {% if order.status == 'ready_for_pickup' or order.status == 'completed' %}
+                    <span class="badge badge-ok">{{ order.get_status_display }}</span>
+                {% elif order.status == 'rejected' or order.status == 'cancelled' %}
+                    <span class="badge badge-no">{{ order.get_status_display }}</span>
+                {% else %}
+                    <span class="badge" style="background: #fff3cd; color: #856404;">{{ order.get_status_display }}</span>
+                {% endif %}
+            </p>
+            <p>
+                <strong>Payment:</strong>
+                {% if order.payment_status == 'paid' %}
+                    <span class="badge badge-ok">Paid</span>
+                {% else %}
+                    <span class="badge" style="background: #e2e3e5; color: #383d41;">Unpaid (Pay at Counter)</span>
+                {% endif %}
+            </p>
+            <p><strong>Estimated Total:</strong> <span style="font-size: 1.25rem; font-weight: 700; color: var(--rose-dark);">LKR {{ order.estimated_total }}</span></p>
+            <p style="font-size: 0.85rem; color: var(--muted);">Payment is finalized at the shop counter upon pickup.</p>
+        </div>
+    </div>
+
+    <!-- Items Table -->
+    <h2 style="font-size: 1.25rem; margin-bottom: 0.75rem;">Ordered Flowers</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Flower</th>
+                    <th>Unit Price (at request)</th>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.flower.name }}</strong>
+                            {% if item.flower.category %}
+                                <span style="color: var(--muted); font-size: 0.85rem;">({{ item.flower.category.name }})</span>
+                            {% endif %}
+                        </td>
+                        <td>LKR {{ item.unit_price_at_request }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td style="text-align: right;">LKR {{ item.subtotal }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--muted);">No items recorded for this order.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="font-weight: 700; border-top: 2px solid var(--line);">
+                    <td colspan="3" style="text-align: right;">Estimated Total:</td>
+                    <td style="text-align: right; color: var(--rose);">LKR {{ order.estimated_total }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

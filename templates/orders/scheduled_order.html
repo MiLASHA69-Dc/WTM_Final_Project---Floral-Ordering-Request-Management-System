@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Scheduled Order | BloomBuds{% endblock %}
+
+{% block content %}
+<div class="auth-card" style="max-width: 36rem;">
+    <h1>Scheduled Order Request</h1>
+    <p class="tagline">Plan ahead for birthdays, anniversaries, and celebrations.</p>
+
+    <div class="info-box" style="margin-bottom: 1.5rem; background: #fdf2f4; border-color: var(--line);">
+        <p style="margin: 0; font-size: 0.9rem;">
+            Pickup date must be starting from tomorrow onwards. Operating hours are <strong>8:00 AM – 4:30 PM</strong>.
+        </p>
+    </div>
+
+    {% if form.non_field_errors %}
+        <ul class="errorlist">
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <p>
+            <label for="{{ form.occasion.id_for_label }}">Occasion (Optional):</label>
+            {{ form.occasion }}
+            {% if form.occasion.errors %}
+                <ul class="errorlist">{{ form.occasion.errors }}</ul>
+            {% endif %}
+        </p>
+
+        <p>
+            <label for="{{ form.pickup_date.id_for_label }}">Pickup Date (From Tomorrow):</label>
+            {{ form.pickup_date }}
+            {% if form.pickup_date.errors %}
+                <ul class="errorlist">{{ form.pickup_date.errors }}</ul>
+            {% endif %}
+        </p>
+
+        <p>
+            <label for="{{ form.pickup_time.id_for_label }}">Pickup Time (08:00 - 16:30):</label>
+            {{ form.pickup_time }}
+            {% if form.pickup_time.errors %}
+                <ul class="errorlist">{{ form.pickup_time.errors }}</ul>
+            {% endif %}
+        </p>
+
+        <p>
+            <label for="{{ form.contact_phone.id_for_label }}">Contact Phone:</label>
+            {{ form.contact_phone }}
+            {% if form.contact_phone.errors %}
+                <ul class="errorlist">{{ form.contact_phone.errors }}</ul>
+            {% endif %}
+        </p>
+
+        <p>
+            <label for="{{ form.instructions.id_for_label }}">Special Instructions (Optional):</label>
+            {{ form.instructions }}
+            {% if form.instructions.errors %}
+                <ul class="errorlist">{{ form.instructions.errors }}</ul>
+            {% endif %}
+        </p>
+
+        <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1.5rem;">
+            <button type="submit" class="btn">Submit Scheduled Order</button>
+            <a href="{% url 'orders:select_order_type' %}" style="text-decoration: none; color: var(--muted); font-size: 0.9rem;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders | BloomBuds{% endblock %}
+
+{% block content %}
+<div class="orders-history">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h1 style="margin: 0; color: var(--rose);">My Order History</h1>
+        <a href="{% url 'catalog' %}" class="btn">Browse More Flowers</a>
+    </div>
+
+    {% if page_obj %}
+        <div class="table-wrap">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Pickup Date &amp; Time</th>
+                        <th>Total</th>
+                        <th>Placed On</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in page_obj %}
+                        <tr>
+                            <td><strong>#{{ order.id }}</strong></td>
+                            <td>{{ order.get_order_type_display }}</td>
+                            <td>
+                                {% if order.status == 'ready_for_pickup' or order.status == 'completed' %}
+                                    <span class="badge badge-ok">{{ order.get_status_display }}</span>
+                                {% elif order.status == 'rejected' or order.status == 'cancelled' %}
+                                    <span class="badge badge-no">{{ order.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge" style="background: #fff3cd; color: #856404;">{{ order.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ order.pickup_date|date:"M d, Y" }} at {{ order.pickup_time|time:"H:i" }}</td>
+                            <td><strong>LKR {{ order.estimated_total }}</strong></td>
+                            <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-small">View Details</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+            <div style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1.5rem;">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-small">&laquo; Previous</a>
+                {% endif %}
+
+                <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-small">Next &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="info-box" style="text-align: center; padding: 2.5rem 1rem;">
+            <h2>No orders yet</h2>
+            <p style="color: var(--muted); margin-bottom: 1.5rem;">You haven't placed any flower order requests yet.</p>
+            <a href="{% url 'catalog' %}" class="btn">Explore Flower Catalog</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
