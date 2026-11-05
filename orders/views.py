@@ -150,7 +150,90 @@ def order_detail_view(request, order_id):
     return render(request, "orders/order_detail.html", {"order": order})
 
 
+@login_required
+def revise_order_view(request, order_id):
+    """
+    Customer View: Allows customer to revise an order when status is 'changes_required'.
+    Customer can adjust quantities or remove unavailable items, recalculate total, 
+    and resubmit (changing status back to 'pending').
+    """
+    order = get_object_or_404(
+        OrderRequest.objects.prefetch_related("items__flower"),
+        id=order_id,
+        customer=request.user
+    )
+
+    # Security check: Customer can ONLY revise if florist marked it as 'changes_required'
+    if not order.can_be_revised:
+        messages.error(request, "This order cannot be edited at its current stage.")
+        return redirect("orders:order_detail", order_id=order.id)
+
+    if request.method == "POST":
+        with transaction.atomic():
+            new_total = 0
+            items_to_keep = False
+
+            # Loop through existing order items to update quantities or remove items
+            for item in order.items.all():
+                qty_field = f"quantity_{item.id}"
+                remove_field = f"remove_{item.id}"
+
+                if remove_field in request.POST:
+                    item.delete()
+                else:
+                    new_qty = int(request.POST.get(qty_field, item.quantity))
+                    if new_qty > 0:
+                        item.quantity = new_qty
+                        # Update snapshot price from current flower catalog price
+                        item.unit_price_at_request = item.flower.unit_price
+                        item.save()
+                        new_total += item.quantity * item.unit_price_at_request
+                        items_to_keep = True
+                    else:
+                        item.delete()
+
+            if not items_to_keep:
+                messages.error(request, "An order request must contain at least one flower.")
+                return redirect("orders:revise_order", order_id=order.id)
+
+            # Recalculate total, reset status back to PENDING for florist review
+            order.estimated_total = new_total
+            order.status = OrderRequest.OrderStatus.PENDING
+            order.save()
+
+        messages.success(request, f"Order #{order.id} has been revised and resubmitted to the florist!")
+        return redirect("orders:order_detail", order_id=order.id)
+
+    return render(request, "orders/revise_order.html", {"order": order})
+
+
 # Convenience aliases
 my_orders = my_orders_view
 order_detail = order_detail_view
+revise_order = revise_order_view
+
+
+def update_order_status(order, new_status, reason=""):
+    """
+    Utility helper for Florist Operations (Developer 3):
+    Safely transitions an order to a new status with corresponding reasons.
+    """
+    if new_status == OrderRequest.OrderStatus.CHANGES_REQUIRED:
+        order.request_changes(reason)
+    elif new_status == OrderRequest.OrderStatus.REJECTED:
+        order.reject(reason)
+    elif new_status == OrderRequest.OrderStatus.IN_PROCESS:
+        order.mark_in_process()
+    elif new_status == OrderRequest.OrderStatus.READY_FOR_PICKUP:
+        order.mark_ready_for_pickup()
+    elif new_status == OrderRequest.OrderStatus.COMPLETED:
+        order.mark_completed()
+    elif new_status == OrderRequest.OrderStatus.CANCELLED:
+        order.cancel()
+    else:
+        order.status = new_status
+        order.save()
+    return order
+
+
 

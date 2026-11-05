@@ -11,6 +11,7 @@ from django.urls import reverse
 from catalog.models import Category, Flower
 from orders.forms import QuickOrderForm, ScheduledOrderForm
 from orders.models import OrderItem, OrderRequest
+from orders.views import update_order_status
 
 User = get_user_model()
 
@@ -82,6 +83,83 @@ class OrderModelTests(TestCase):
                 quantity=2,
                 unit_price_at_request=Decimal("250.00"),
             )
+
+    def test_order_request_helper_properties(self):
+        order = OrderRequest.objects.create(
+            customer=self.user,
+            order_type=OrderRequest.OrderType.QUICK,
+            pickup_date=date.today(),
+            pickup_time=time(10, 30),
+            contact_phone="0771234567",
+            status=OrderRequest.OrderStatus.PENDING,
+        )
+        self.assertFalse(order.can_be_revised)
+        self.assertFalse(order.is_terminal)
+        self.assertIn("amber", order.status_badge_class)
+
+        order.status = OrderRequest.OrderStatus.CHANGES_REQUIRED
+        self.assertTrue(order.can_be_revised)
+        self.assertFalse(order.is_terminal)
+        self.assertIn("orange", order.status_badge_class)
+
+        order.status = OrderRequest.OrderStatus.COMPLETED
+        self.assertFalse(order.can_be_revised)
+        self.assertTrue(order.is_terminal)
+
+        order.status = OrderRequest.OrderStatus.REJECTED
+        self.assertTrue(order.is_terminal)
+
+        order.status = OrderRequest.OrderStatus.CANCELLED
+        self.assertTrue(order.is_terminal)
+
+    def test_order_request_transition_helpers(self):
+        order = OrderRequest.objects.create(
+            customer=self.user,
+            order_type=OrderRequest.OrderType.SCHEDULED,
+            pickup_date=date.today() + timedelta(days=2),
+            pickup_time=time(11, 0),
+            contact_phone="0771234567",
+            status=OrderRequest.OrderStatus.PENDING,
+        )
+
+        order.request_changes("Need alternative color")
+        self.assertEqual(order.status, OrderRequest.OrderStatus.CHANGES_REQUIRED)
+        self.assertEqual(order.revision_reason, "Need alternative color")
+
+        order.mark_in_process()
+        self.assertEqual(order.status, OrderRequest.OrderStatus.IN_PROCESS)
+
+        order.mark_ready_for_pickup()
+        self.assertEqual(order.status, OrderRequest.OrderStatus.READY_FOR_PICKUP)
+
+        order.mark_completed()
+        self.assertEqual(order.status, OrderRequest.OrderStatus.COMPLETED)
+        self.assertEqual(order.payment_status, OrderRequest.PaymentStatus.PAID)
+
+        order.reject("Out of stock")
+        self.assertEqual(order.status, OrderRequest.OrderStatus.REJECTED)
+        self.assertEqual(order.rejection_reason, "Out of stock")
+
+        order.cancel()
+        self.assertEqual(order.status, OrderRequest.OrderStatus.CANCELLED)
+
+    def test_update_order_status_helper(self):
+        order = OrderRequest.objects.create(
+            customer=self.user,
+            order_type=OrderRequest.OrderType.SCHEDULED,
+            pickup_date=date.today() + timedelta(days=2),
+            pickup_time=time(11, 0),
+            contact_phone="0771234567",
+            status=OrderRequest.OrderStatus.PENDING,
+        )
+        update_order_status(order, OrderRequest.OrderStatus.CHANGES_REQUIRED, reason="Adjust count")
+        self.assertEqual(order.status, OrderRequest.OrderStatus.CHANGES_REQUIRED)
+        self.assertEqual(order.revision_reason, "Adjust count")
+
+        update_order_status(order, OrderRequest.OrderStatus.IN_PROCESS)
+        self.assertEqual(order.status, OrderRequest.OrderStatus.IN_PROCESS)
+
+
 
 
 class OrderFormTests(TestCase):
@@ -329,3 +407,142 @@ class OrderHistoryAndDetailViewTests(TestCase):
             reverse("orders:order_detail", kwargs={"order_id": self.edward_order.id})
         )
         self.assertEqual(response.status_code, 404)
+
+
+class OrderRevisionViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="fiona", password="password123"
+        )
+        self.other_user = User.objects.create_user(
+            username="george", password="password123"
+        )
+        self.category = Category.objects.create(name="Orchids")
+        self.flower1 = Flower.objects.create(
+            category=self.category,
+            name="Purple Orchid",
+            color="Purple",
+            unit_price=Decimal("500.00"),
+            stock_quantity=10,
+            is_available=True,
+            is_active=True,
+        )
+        self.flower2 = Flower.objects.create(
+            category=self.category,
+            name="White Orchid",
+            color="White",
+            unit_price=Decimal("600.00"),
+            stock_quantity=5,
+            is_available=True,
+            is_active=True,
+        )
+
+        # Order with changes_required
+        self.order = OrderRequest.objects.create(
+            customer=self.user,
+            order_type=OrderRequest.OrderType.SCHEDULED,
+            pickup_date=date.today() + timedelta(days=2),
+            pickup_time=time(14, 0),
+            contact_phone="0775554444",
+            estimated_total=Decimal("1700.00"),
+            status=OrderRequest.OrderStatus.CHANGES_REQUIRED,
+            revision_reason="White Orchid is out of stock. Please adjust or remove.",
+        )
+        self.item1 = OrderItem.objects.create(
+            order_request=self.order,
+            flower=self.flower1,
+            quantity=1,
+            unit_price_at_request=Decimal("500.00"),
+        )
+        self.item2 = OrderItem.objects.create(
+            order_request=self.order,
+            flower=self.flower2,
+            quantity=2,
+            unit_price_at_request=Decimal("600.00"),
+        )
+
+    def test_revise_order_requires_login(self):
+        response = self.client.get(
+            reverse("orders:revise_order", kwargs={"order_id": self.order.id})
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("login", response.url)
+
+    def test_revise_order_unauthorized_access_returns_404(self):
+        self.client.login(username="george", password="password123")
+        response = self.client.get(
+            reverse("orders:revise_order", kwargs={"order_id": self.order.id})
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_revise_order_not_changes_required_redirects(self):
+        self.client.login(username="fiona", password="password123")
+        self.order.status = OrderRequest.OrderStatus.PENDING
+        self.order.save()
+
+        response = self.client.get(
+            reverse("orders:revise_order", kwargs={"order_id": self.order.id})
+        )
+        self.assertRedirects(
+            response, reverse("orders:order_detail", kwargs={"order_id": self.order.id})
+        )
+
+    def test_revise_order_get_success(self):
+        self.client.login(username="fiona", password="password123")
+        response = self.client.get(
+            reverse("orders:revise_order", kwargs={"order_id": self.order.id})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "White Orchid is out of stock")
+        self.assertContains(response, "Purple Orchid")
+
+    def test_revise_order_post_update_and_remove(self):
+        self.client.login(username="fiona", password="password123")
+        # Catalog price updated for flower1
+        self.flower1.unit_price = Decimal("550.00")
+        self.flower1.save()
+
+        # Update item1 quantity to 3, and remove item2
+        post_data = {
+            f"quantity_{self.item1.id}": "3",
+            f"remove_{self.item2.id}": "1",
+        }
+        response = self.client.post(
+            reverse("orders:revise_order", kwargs={"order_id": self.order.id}),
+            data=post_data,
+        )
+        self.assertRedirects(
+            response, reverse("orders:order_detail", kwargs={"order_id": self.order.id})
+        )
+
+        self.order.refresh_from_db()
+        # Status reset back to PENDING
+        self.assertEqual(self.order.status, OrderRequest.OrderStatus.PENDING)
+        # Total updated: 3 * 550.00 = 1650.00
+        self.assertEqual(self.order.estimated_total, Decimal("1650.00"))
+        # item2 was removed
+        self.assertEqual(self.order.items.count(), 1)
+        self.item1.refresh_from_db()
+        self.assertEqual(self.item1.quantity, 3)
+        self.assertEqual(self.item1.unit_price_at_request, Decimal("550.00"))
+
+    def test_revise_order_remove_all_items_fails(self):
+        self.client.login(username="fiona", password="password123")
+        # Remove both items
+        post_data = {
+            f"remove_{self.item1.id}": "1",
+            f"remove_{self.item2.id}": "1",
+        }
+        response = self.client.post(
+            reverse("orders:revise_order", kwargs={"order_id": self.order.id}),
+            data=post_data,
+        )
+        self.assertRedirects(
+            response, reverse("orders:revise_order", kwargs={"order_id": self.order.id})
+        )
+
+        self.order.refresh_from_db()
+        # Status should NOT be set to PENDING
+        self.assertEqual(self.order.status, OrderRequest.OrderStatus.CHANGES_REQUIRED)
+

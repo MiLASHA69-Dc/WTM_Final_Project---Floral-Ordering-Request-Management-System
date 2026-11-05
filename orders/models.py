@@ -86,6 +86,68 @@ class OrderRequest(models.Model):
     def __str__(self):
         return f"Order #{self.pk} - {self.get_status_display()}"
 
+    @property
+    def can_be_revised(self):
+        """Returns True if the order status allows customer revision."""
+        return self.status == self.OrderStatus.CHANGES_REQUIRED
+
+    @property
+    def is_terminal(self):
+        """Returns True if the order is in a final state (Completed, Rejected, Cancelled)."""
+        return self.status in [
+            self.OrderStatus.COMPLETED,
+            self.OrderStatus.REJECTED,
+            self.OrderStatus.CANCELLED,
+        ]
+
+    @property
+    def status_badge_class(self):
+        """Returns semantic CSS badge colors for frontend status display."""
+        mapping = {
+            self.OrderStatus.PENDING: "bg-amber-100 text-amber-800 border-amber-300",
+            self.OrderStatus.CHANGES_REQUIRED: "bg-orange-100 text-orange-800 border-orange-300",
+            self.OrderStatus.IN_PROCESS: "bg-blue-100 text-blue-800 border-blue-300",
+            self.OrderStatus.READY_FOR_PICKUP: "bg-emerald-100 text-emerald-800 border-emerald-300",
+            self.OrderStatus.COMPLETED: "bg-gray-100 text-gray-800 border-gray-300",
+            self.OrderStatus.REJECTED: "bg-rose-100 text-rose-800 border-rose-300",
+            self.OrderStatus.CANCELLED: "bg-slate-100 text-slate-800 border-slate-300",
+        }
+        return mapping.get(self.status, "bg-slate-100 text-slate-800")
+
+    def request_changes(self, reason):
+        """Florist helper: Request revisions from customer."""
+        self.status = self.OrderStatus.CHANGES_REQUIRED
+        self.revision_reason = reason
+        self.save()
+
+    def mark_in_process(self):
+        """Florist helper: Move order to in-process."""
+        self.status = self.OrderStatus.IN_PROCESS
+        self.save()
+
+    def mark_ready_for_pickup(self):
+        """Florist helper: Mark order ready for pickup."""
+        self.status = self.OrderStatus.READY_FOR_PICKUP
+        self.save()
+
+    def mark_completed(self):
+        """Florist helper: Complete order and mark paid upon counter collection."""
+        self.status = self.OrderStatus.COMPLETED
+        self.payment_status = self.PaymentStatus.PAID
+        self.save()
+
+    def reject(self, reason):
+        """Florist helper: Reject order request."""
+        self.status = self.OrderStatus.REJECTED
+        self.rejection_reason = reason
+        self.save()
+
+    def cancel(self):
+        """Cancel order request."""
+        self.status = self.OrderStatus.CANCELLED
+        self.save()
+
+
 
 class OrderItem(models.Model):
 

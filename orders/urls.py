@@ -15,4 +15,7 @@ urlpatterns = [
     path("<int:order_id>/", views.order_detail_view, name="order_detail"),
     path("<int:order_id>/", views.order_detail_view, name="order_detail_view"),
     path("detail/<int:order_id>/", views.order_detail_view, name="order_detail_alt"),
+    path("<int:order_id>/revise/", views.revise_order_view, name="revise_order"),
+    path("<int:order_id>/revise/", views.revise_order_view, name="revise_order_view"),
+    path("revise/<int:order_id>/", views.revise_order_view, name="revise_order_alt"),
 ]

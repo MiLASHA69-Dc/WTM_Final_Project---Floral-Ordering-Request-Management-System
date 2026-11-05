@@ -29,19 +29,16 @@
                             <td><strong>#{{ order.id }}</strong></td>
                             <td>{{ order.get_order_type_display }}</td>
                             <td>
-                                {% if order.status == 'ready_for_pickup' or order.status == 'completed' %}
-                                    <span class="badge badge-ok">{{ order.get_status_display }}</span>
-                                {% elif order.status == 'rejected' or order.status == 'cancelled' %}
-                                    <span class="badge badge-no">{{ order.get_status_display }}</span>
-                                {% else %}
-                                    <span class="badge" style="background: #fff3cd; color: #856404;">{{ order.get_status_display }}</span>
-                                {% endif %}
+                                <span class="badge {{ order.status_badge_class }}">{{ order.get_status_display }}</span>
                             </td>
                             <td>{{ order.pickup_date|date:"M d, Y" }} at {{ order.pickup_time|time:"H:i" }}</td>
                             <td><strong>LKR {{ order.estimated_total }}</strong></td>
                             <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
-                            <td>
+                            <td style="white-space: nowrap;">
                                 <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-small">View Details</a>
+                                {% if order.can_be_revised %}
+                                    <a href="{% url 'orders:revise_order' order.id %}" class="btn btn-small" style="background: #ea580c; color: #fff; margin-left: 0.25rem;">Revise</a>
+                                {% endif %}
                             </td>
                         </tr>
                     {% endfor %}
