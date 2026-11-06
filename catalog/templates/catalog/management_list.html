@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Flower & Category Management</h2>
+        <div>
+            <a href="{% url 'catalog:category_create' %}" class="btn btn-outline-primary">+ Add Category</a>
+            <a href="{% url 'catalog:flower_create' %}" class="btn btn-primary">+ Add Flower</a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Categories List -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light"><strong>Categories</strong></div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in categories %}
+                    <tr>
+                        <td><strong>{{ cat.name }}</strong></td>
+                        <td>{{ cat.description|default:"—" }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'catalog:category_update' cat.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                            <a href="{% url 'catalog:category_delete' cat.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center py-3 text-muted">No categories created yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Flowers List -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light"><strong>Flower Catalog Items</strong></div>
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Unit Price</th>
+                        <th>Stock Qty</th>
+                        <th>Available</th>
+                        <th>Active</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for flower in flowers %}
+                    <tr>
+                        <td style="width: 70px;">
+                            {% if flower.image %}
+                                <img src="{{ flower.image.url }}" alt="{{ flower.name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                            {% else %}
+                                <div class="bg-secondary text-white text-center py-2" style="width: 50px; height: 50px; font-size: 10px; border-radius: 4px;">No img</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ flower.name }}</strong><br>
+                            <small class="text-muted">{{ flower.color }}</small>
+                        </td>
+                        <td>{{ flower.category.name }}</td>
+                        <td>Rs. {{ flower.unit_price }}</td>
+                        <td>{{ flower.stock_quantity }}</td>
+                        <td>
+                            {% if flower.is_available %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if flower.is_active %}
+                                <span class="badge bg-primary">Visible</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Hidden</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'catalog:flower_update' flower.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                            <a href="{% url 'catalog:flower_delete' flower.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center py-4 text-muted">No flowers added yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
