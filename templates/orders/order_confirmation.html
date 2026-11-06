@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmation #{{ order.id }} | BloomBuds{% endblock %}
+
+{% block content %}
+<div class="auth-card" style="max-width: 40rem; text-align: center; padding: 2rem;">
+    <div style="font-size: 3rem; margin-bottom: 0.5rem;">🌸</div>
+    <h1 style="color: var(--rose); margin-bottom: 0.5rem;">Order Request Received!</h1>
+    <p class="tagline" style="font-size: 1.1rem;">Thank you! Your order <strong>#{{ order.id }}</strong> has been submitted to the florist for review.</p>
+
+    <div class="info-box" style="text-align: left; margin: 1.5rem 0;">
+        <h3 style="margin-top: 0; color: var(--rose);">Summary</h3>
+        <p><strong>Order Type:</strong> {{ order.get_order_type_display }}</p>
+        <p><strong>Pickup Date:</strong> {{ order.pickup_date|date:"l, F d, Y" }}</p>
+        <p><strong>Pickup Time:</strong> {{ order.pickup_time|time:"H:i" }}</p>
+        <p><strong>Estimated Total:</strong> <strong style="color: var(--rose-dark);">LKR {{ order.estimated_total }}</strong></p>
+        <p><strong>Status:</strong> <span class="badge" style="background: #fff3cd; color: #856404;">{{ order.get_status_display }}</span></p>
+        <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0;">
+            Note: Payment is due in person at the counter when you pick up your flowers.
+        </p>
+    </div>
+
+    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'orders:order_detail' order.id %}" class="btn">View Order Details</a>
+        <a href="{% url 'orders:my_orders' %}" class="btn" style="background: #fff; color: var(--rose); border: 1px solid var(--rose);">My Orders</a>
+        <a href="{% url 'catalog' %}" style="align-self: center; color: var(--muted); text-decoration: none; font-size: 0.9rem;">Continue Shopping</a>
+    </div>
+</div>
+{% endblock %}
+

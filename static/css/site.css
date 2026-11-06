@@ -94,9 +94,38 @@ input[type="number"], select {
 .flower-body h3 a { text-decoration: none; }
 .flower-meta { color: var(--muted); font-size: .85rem; margin: 0; }
 .flower-price { font-weight: 700; margin: 0; }
-.badge { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .8rem; align-self: flex-start; }
+.badge { display: inline-block; padding: .15rem .6rem; border-radius: 999px; font-size: .8rem; font-weight: 500; align-self: flex-start; border: 1px solid transparent; }
 .badge-ok { background: #e8f3ec; color: var(--leaf); }
 .badge-no { background: #eee; color: #777; }
+
+/* Status badge utility classes */
+.bg-amber-100 { background-color: #fef3c7; }
+.text-amber-800 { color: #92400e; }
+.border-amber-300 { border-color: #fcd34d; }
+
+.bg-orange-100 { background-color: #ffedd5; }
+.text-orange-800 { color: #9a3412; }
+.border-orange-300 { border-color: #fdba74; }
+
+.bg-blue-100 { background-color: #dbeafe; }
+.text-blue-800 { color: #1e40af; }
+.border-blue-300 { border-color: #93c5fd; }
+
+.bg-emerald-100 { background-color: #d1fae5; }
+.text-emerald-800 { color: #065f46; }
+.border-emerald-300 { border-color: #6ee7b7; }
+
+.bg-gray-100 { background-color: #f3f4f6; }
+.text-gray-800 { color: #1f2937; }
+.border-gray-300 { border-color: #d1d5db; }
+
+.bg-rose-100 { background-color: #ffe4e6; }
+.text-rose-800 { color: #9f1239; }
+.border-rose-300 { border-color: #fda4af; }
+
+.bg-slate-100 { background-color: #f1f5f9; }
+.text-slate-800 { color: #1e293b; }
+.border-slate-300 { border-color: #cbd5e1; }
 .add-form { margin-top: auto; display: flex; gap: .4rem; padding-top: .5rem; }
 .add-form input[type="number"] { width: 4rem; }
 
