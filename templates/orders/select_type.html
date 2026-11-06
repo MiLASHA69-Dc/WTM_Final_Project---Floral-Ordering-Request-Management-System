@@ -8,19 +8,22 @@
         <!-- Quick Order Option -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
             <h3 class="text-lg font-bold text-indigo-900 mb-2">Quick Orders</h3>
-            <p class="text-xs text-slate-600 mb-6">Same-day pickup. Order must be submitted before <strong>11:00 AM</strong> Sri Lanka time.</p>
-            <a href="{% url 'orders:quick_order' %}" class="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl text-sm transition">
-                Proceed with Quick Order
-            </a>
+            <p class="text-xs text-slate-600 mb-6">Same-day pickup. Order must be submitted before <strong>11:00
+                    AM</strong> Sri Lanka time.</p>
+                <a href="{% url 'orders:create_quick_order' %}"
+                    class="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl text-sm transition">
+                    Proceed with Quick Order
+                </a>
         </div>
 
         <!-- Scheduled Order Option -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
             <h3 class="text-lg font-bold text-indigo-900 mb-2"> Scheduled Orders</h3>
             <p class="text-xs text-slate-600 mb-6">Choose a future pickup date and time for special occasions.</p>
-            <a href="{% url 'orders:scheduled_order' %}" class="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl text-sm transition">
-                Proceed with Scheduled Order
-            </a>
+                <a href="{% url 'orders:create_scheduled_order' %}"
+                    class="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl text-sm transition">
+                    Proceed with Scheduled Order
+                </a>
         </div>
     </div>
 </div>

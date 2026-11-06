@@ -23,14 +23,27 @@ class QuickOrderForm(forms.ModelForm):
                     "class": "w-full px-4 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
                 }
             )
+        
 
+# Validate Quick Order pickup time within shop hours and after the current Sri Lankan time.
     def clean_pickup_time(self):
         pickup_time = self.cleaned_data.get("pickup_time")
+
         if pickup_time:
-            if pickup_time < time(8, 0) or pickup_time > time(16, 30):
-                raise ValidationError(
-                    "Pickup time must be during shop operating hours (8:00 AM - 4:30 PM)."
-                )
+            now_sl = timezone.localtime(
+                timezone.now(), ZoneInfo("Asia/Colombo")
+        )
+
+        if pickup_time < time(11, 30) or pickup_time > time(16, 30):
+            raise ValidationError(
+                "Pickup time must be between 11:30 AM and 4:30 PM."
+            )
+
+        if pickup_time <= now_sl.time():
+            raise ValidationError(
+                "Pickup time must be later than the current time."
+            )
+
         return pickup_time
 
     def clean(self):
