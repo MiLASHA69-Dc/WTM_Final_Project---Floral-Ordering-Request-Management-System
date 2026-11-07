@@ -1,0 +1,25 @@
+<article class="flower-card">
+    <a href="{% url 'flower_detail' flower.pk %}">
+        {% if flower.image %}
+            <img class="flower-image" src="{{ flower.image.url }}" alt="{{ flower.name }}">
+        {% else %}
+            <div class="flower-image placeholder">No image</div>
+        {% endif %}
+    </a>
+    <div class="flower-body">
+        <h3><a href="{% url 'flower_detail' flower.pk %}">{{ flower.name }}</a></h3>
+        <p class="flower-meta">{{ flower.category.name }} | {{ flower.color }}</p>
+        <p class="flower-price">{{ flower.unit_price }}</p>
+        {% if flower.is_available %}
+            <span class="badge badge-ok">Available</span>
+            <form class="add-form" method="post" action="{% url 'cart_add' flower.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <input type="number" name="quantity" value="1" min="1" max="99">
+                <button type="submit">Add to cart</button>
+            </form>
+        {% else %}
+            <span class="badge badge-no">Currently unavailable</span>
+        {% endif %}
+    </div>
+</article>

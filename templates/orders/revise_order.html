@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Revise Order #{{ order.id }} | BloomBuds{% endblock %}
+
+{% block content %}
+<div class="order-revise-container" style="max-width: 900px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="margin: 0; color: var(--rose);">Revise Order #{{ order.id }}</h1>
+            <p style="color: var(--muted); margin: 0.25rem 0 0;">Make adjustments requested by the florist.</p>
+        </div>
+        <a href="{% url 'orders:order_detail' order.id %}" class="btn" style="background: #fff; color: var(--rose); border: 1px solid var(--rose);">&laquo; Cancel</a>
+    </div>
+
+    {% if order.revision_reason %}
+        <div class="message" style="background: #fff3cd; border-color: #ffeeba; color: #856404; margin-bottom: 1.5rem;">
+            <strong>Florist's Revision Request:</strong>
+            <p style="margin: 0.5rem 0 0;">{{ order.revision_reason }}</p>
+        </div>
+    {% endif %}
+
+    <div class="info-box" style="margin-top: 0; margin-bottom: 1.5rem; background: #fff;">
+        <p style="margin: 0; font-size: 0.9rem; color: var(--muted);">
+            <strong>Instructions:</strong> Adjust flower quantities or check <em>Remove</em> to take items out of your order. Prices are refreshed against the current catalog. When you submit, the order will be placed back into <strong>Pending</strong> status for florist review.
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="table-wrap" style="margin-bottom: 1.5rem;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Flower</th>
+                        <th>Catalog Status</th>
+                        <th>Current Price</th>
+                        <th>Quantity</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.flower.name }}</strong>
+                                {% if item.flower.category %}
+                                    <div style="color: var(--muted); font-size: 0.85rem;">{{ item.flower.category.name }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if not item.flower.is_available or not item.flower.is_active %}
+                                    <span class="badge badge-no">Unavailable</span>
+                                {% elif item.flower.stock_quantity < item.quantity %}
+                                    <span class="badge" style="background: #fff3cd; color: #856404;">Low stock ({{ item.flower.stock_quantity }} left)</span>
+                                {% else %}
+                                    <span class="badge badge-ok">In Stock</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>LKR {{ item.flower.unit_price }}</strong>
+                                {% if item.flower.unit_price != item.unit_price_at_request %}
+                                    <div style="font-size: 0.75rem; color: var(--muted);">(was LKR {{ item.unit_price_at_request }})</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <input
+                                    type="number"
+                                    name="quantity_{{ item.id }}"
+                                    value="{{ item.quantity }}"
+                                    min="0"
+                                    max="99"
+                                    style="width: 5rem; padding: 0.35rem 0.5rem; border: 1px solid var(--line); border-radius: 6px;"
+                                >
+                            </td>
+                            <td>
+                                <label style="display: flex; align-items: center; gap: 0.35rem; color: #b00020; font-weight: normal; cursor: pointer; margin: 0;">
+                                    <input type="checkbox" name="remove_{{ item.id }}" value="1">
+                                    <span>Remove</span>
+                                </label>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--muted); padding: 1.5rem;">
+                                No items found in this order request.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <button type="submit" class="btn">Resubmit Order to Florist</button>
+            <a href="{% url 'orders:order_detail' order.id %}" style="color: var(--muted); text-decoration: none; font-size: 0.9rem;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

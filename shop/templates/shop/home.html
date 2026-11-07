@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}BloomBuds | A Blossom for Every Moment{% endblock %}
+{% block content %}
+    <section class="hero">
+        <h1>BloomBuds</h1>
+        <p class="tagline">A Blossom for Every Moment...</p>
+        <a class="btn" href="{% url 'catalog' %}">Browse the catalog</a>
+    </section>
+
+    <h2>Featured flowers</h2>
+    <div class="flower-grid">
+        {% for flower in featured %}
+            {% include 'shop/_flower_card.html' %}
+        {% empty %}
+            <p>No flowers to show yet.</p>
+        {% endfor %}
+    </div>
+
+    <section class="info-box">
+        <h2>Shop information</h2>
+        <p>Customer pickup only. Shop hours: 8:00 AM to 4:30 PM.</p>
+        <p>Quick orders must be submitted before 11:00 AM for same-day pickup. Payment is made at the counter.</p>
+    </section>
+{% endblock %}

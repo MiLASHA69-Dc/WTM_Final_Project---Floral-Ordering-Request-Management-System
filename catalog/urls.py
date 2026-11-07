@@ -4,16 +4,20 @@ from . import views
 app_name = 'catalog'
 
 urlpatterns = [
-    # Staff Inventory Management
+    # Flower & Category CRUD
     path('management/', views.flower_management_list, name='management_list'),
-    
-    # Flower Actions
     path('flowers/add/', views.flower_create, name='flower_create'),
     path('flowers/<int:pk>/edit/', views.flower_update, name='flower_update'),
     path('flowers/<int:pk>/delete/', views.flower_delete, name='flower_delete'),
-    
-    # Category Actions
     path('categories/add/', views.category_create, name='category_create'),
     path('categories/<int:pk>/edit/', views.category_update, name='category_update'),
     path('categories/<int:pk>/delete/', views.category_delete, name='category_delete'),
+
+    # Florist Operations
+    path('florist/dashboard/', views.florist_dashboard, name='florist_dashboard'),
+    path('florist/orders/<int:order_id>/decision/', views.florist_order_decision, name='florist_decision'),
+    path('florist/orders/<int:order_id>/transition/', views.florist_status_transition, name='florist_transition'),
+
+    # Customer Revision
+    path('orders/<int:order_id>/revise/', views.revise_order_request, name='revise_order_request'),
 ]

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Catalog | BloomBuds{% endblock %}
+{% block content %}
+    <h1>Flower Catalog</h1>
+
+    <form method="get" class="filter-form">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search flowers">
+        <select name="category">
+            <option value="">All categories</option>
+            {% for category in categories %}
+                <option value="{{ category.id }}"
+                    {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Search</button>
+        <a href="{% url 'catalog' %}">Clear</a>
+    </form>
+
+    <div class="flower-grid">
+        {% for flower in flowers %}
+            {% include 'shop/_flower_card.html' %}
+        {% empty %}
+            <p>No flowers found.</p>
+        {% endfor %}
+    </div>
+{% endblock %}
