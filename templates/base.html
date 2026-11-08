@@ -10,13 +10,14 @@
 <body>
     <header class="site-header">
         <div class="container header-inner">
-            <a class="brand" href="{% url 'catalog:florist_dashboard' %}">Home</a>
+            <a class="brand" href="{% url 'home' %}">Home</a>
             <nav class="site-nav">
-                <a href="{% url 'catalog:management_list' %}">Catalog</a>
-                <a href="#">Cart</a>
+                <a href="{% url 'catalog' %}">Catalog</a>
+                <a href="{% url 'cart' %}">Cart</a>
                 {% if user.is_authenticated %}
                     {% if user.is_staff %}
                         <a href="{% url 'catalog:florist_dashboard' %}">Florist Dashboard</a>
+                        <a href="{% url 'catalog:management_list' %}">Manage catalog</a>
                         <a href="/admin/">Staff admin</a>
                     {% endif %}
                     <span class="nav-user">{{ user.username }}</span>

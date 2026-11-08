@@ -5,7 +5,7 @@ app_name = 'catalog'
 
 urlpatterns = [
     # Staff Flower & Category Management List
-    path('', views.flower_management_list, name='catalog'),
+    #path('', views.flower_management_list, name='catalog'),
     path('management/', views.flower_management_list, name='management_list'),
     
     # Flower CRUD
