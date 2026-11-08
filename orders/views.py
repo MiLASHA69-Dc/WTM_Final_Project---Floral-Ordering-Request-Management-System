@@ -86,9 +86,10 @@ def create_quick_order(request):
 
             messages.success(request, f"Order #{order.id} submitted!")
             return redirect("orders:order_confirmation", order_id=order.id)
-        else:
-            form = QuickOrderForm()
-
+    
+    else:
+        form = QuickOrderForm()
+  
     return render(request, "orders/quick_order.html", {"form": form})
 
 
@@ -187,41 +188,62 @@ def revise_order_view(request, order_id):
         return redirect("orders:order_detail", order_id=order.id)
 
     if request.method == "POST":
-        with transaction.atomic():
-            new_total = 0
-            items_to_keep = False
+        new_total = 0
+        updated_items = []
 
-            # Loop through existing order items to update quantities or remove items
-            for item in order.items.all():
-                qty_field = f"quantity_{item.id}"
-                remove_field = f"remove_{item.id}"
+        # Loop through existing order items to update quantities or remove items (Validating everything before changing database records)
+        for item in order.items.all():
+            qty_field = f"quantity_{item.id}"
+            remove_field = f"remove_{item.id}"
 
-                if remove_field in request.POST:
-                    item.delete()
-                else:
-                    new_qty = int(request.POST.get(qty_field, item.quantity))
-                    if new_qty > 0:
-                        item.quantity = new_qty
-                        # Update snapshot price from current flower catalog price
-                        item.unit_price_at_request = item.flower.unit_price
-                        item.save()
-                        new_total += item.quantity * item.unit_price_at_request
-                        items_to_keep = True
-                    else:
-                        item.delete()
-
-            if not items_to_keep:
-                messages.error(request, "An order request must contain at least one flower.")
+            if remove_field in request.POST:
+                continue
+            try:
+                new_qty = int(request.POST.get(qty_field, item.quantity))
+            except (ValueError, TypeError):
+                messages.error(request,"Invalid quantity: An order request must contain at least one flower.")
+                return redirect("orders:revise_order", order_id=order.id)
+            if new_qty < 0:
+                messages.error(request, "Quantity cannot be negative.")
+                return redirect("orders:revise_order", order_id=order.id)
+            if new_qty == 0:
+                continue
+            if not item.flower.is_active or not item.flower.is_available:
+                messages.error(
+                    request,
+                    f"{item.flower.name} is currently unavailable."
+                )
+                return redirect("orders:revise_order", order_id=order.id)
+            if new_qty > item.flower.stock_quantity:
+                messages.error(request, f"Not enough stock for {item.flower.name}. Available: {item.flower.stock_quantity}, Requested: {new_qty}.")
                 return redirect("orders:revise_order", order_id=order.id)
 
-            # Recalculate total, reset status back to PENDING for florist review
+            updated_items.append((item, new_qty))
+            new_total = new_total + (new_qty * item.flower.unit_price)
+
+        if not updated_items:
+            messages.error(request, "An order request must contain at least one flower.")
+            return redirect("orders:revise_order", order_id=order.id)   
+
+        # Save only after all validation succeeds
+        with transaction.atomic():
+            retained_ids = []
+
+            for item, new_qty in updated_items:
+                item.quantity = new_qty
+                item.unit_price_at_request = item.flower.unit_price
+                item.save()
+                retained_ids.append(item.id)
+
+            order.items.exclude(id__in=retained_ids).delete()
+
             order.estimated_total = new_total
             order.status = OrderRequest.OrderStatus.PENDING
             order.save()
 
-        messages.success(request, f"Order #{order.id} has been revised and resubmitted to the florist!")
+        messages.success(request, "Order revised and resubmitted!")
         return redirect("orders:order_detail", order_id=order.id)
-
+            
     return render(request, "orders/revise_order.html", {"order": order})
 
 
