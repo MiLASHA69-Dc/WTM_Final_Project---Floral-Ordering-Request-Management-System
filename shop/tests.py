@@ -111,7 +111,7 @@ class CartTests(TestCase):
     def test_cart_survives_login(self):
         self.add(self.rose, 2)
         self.client.post(
-            reverse('login'), {'username': 'tester', 'password': PASSWORD}
+            reverse('accounts:login'), {'username': 'tester', 'password': PASSWORD}
         )
         self.assertIn('_auth_user_id', self.client.session)
         self.assertEqual(self.cart(), {str(self.rose.pk): 2})
@@ -124,5 +124,5 @@ class CartTests(TestCase):
         self.add(self.rose)
         response = self.client.get(reverse('cart_proceed'))
         self.assertRedirects(
-            response, f"{reverse('login')}?next={reverse('cart_proceed')}"
+            response, f"{reverse('accounts:login')}?next={reverse('cart_proceed')}"
         )
