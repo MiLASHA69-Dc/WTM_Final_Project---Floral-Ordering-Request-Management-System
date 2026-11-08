@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4" style="max-width: 700px;">
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+            <h4>Revise Your Order Request #{{ order.id }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <strong>Florist Note:</strong> {{ order.revision_reason }}
+            </div>
+            <p class="text-muted">Adjust the quantities below or check the delete box for flowers you wish to remove, then click Resubmit.</p>
+
+            <form method="post">
+                {% csrf_token %}
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Flower</th>
+                            <th>Unit Price</th>
+                            <th style="width: 120px;">Quantity</th>
+                            <th class="text-center">Remove?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items.all %}
+                        <tr>
+                            <td><strong>{{ item.flower.name }}</strong></td>
+                            <td>Rs. {{ item.unit_price_at_request }}</td>
+                            <td>
+                                <input type="number" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" class="form-control form-control-sm">
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox" name="delete_{{ item.id }}" class="form-check-input">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Resubmit Order Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
