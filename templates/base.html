@@ -15,6 +15,9 @@
                 <a href="{% url 'catalog' %}">Catalog</a>
                 <a href="{% url 'cart' %}">Cart</a>
                 {% if user.is_authenticated %}
+                        {% if not user.is_staff %}
+                            <a href="{% url 'orders:my_orders' %}">My Orders</a>
+                        {% endif %}
                     {% if user.is_staff %}
                         <a href="{% url 'catalog:florist_dashboard' %}">Florist Dashboard</a>
                         <a href="{% url 'catalog:management_list' %}">Manage catalog</a>
