@@ -12,7 +12,7 @@
             <h1>{{ flower.name }}</h1>
             <p class="flower-meta">{{ flower.category.name }} | {{ flower.color }}</p>
             <p>{{ flower.description }}</p>
-            <p class="flower-price">Price: {{ flower.unit_price }}</p>
+            <p class="flower-price">Price: LKR {{ flower.unit_price|floatformat:2 }}</p>
             {% if flower.is_available %}
                 <span class="badge badge-ok">Available</span>
                 <form class="add-form" method="post" action="{% url 'cart_add' flower.pk %}">
