@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +21,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-4!u09c3-gp3zo&3@8)+sgyaqr2n#*j(2in^1!nbnuh22_2*%%u'
+# On the deployed server, set DJANGO_SECRET_KEY in the WSGI file.
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-4!u09c3-gp3zo&3@8)+sgyaqr2n#*j(2in^1!nbnuh22_2*%%u',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Defaults to True for local development. The deployed server sets
+# DJANGO_DEBUG=False in the WSGI file.
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'stephcodes.pythonanywhere.com']
 
 
 # Application definition
@@ -122,7 +129,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+# Where `python manage.py collectstatic` gathers files for the deployed server.
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Uploaded files (flower images)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -136,10 +146,7 @@ MAILERS = {
     },
 }
 
-#LOGIN_URL = 'login'
+# Authentication redirects
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
